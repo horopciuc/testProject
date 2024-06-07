@@ -1,19 +1,33 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { fetchStockData } from '../api';
+import { StockData as StockDataType } from '../types/stockData';
 
 interface StockDataProps {
   symbol: string;
 }
 
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+};
+
 const StockData: React.FC<StockDataProps> = ({ symbol }) => {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<StockDataType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchStockData(symbol)
-      .then(setData)
-      .catch((error) => setError(error.message));
+    const fetchData = async () => {
+      try {
+        const data: StockDataType = await fetchStockData(symbol);
+        setData(data);
+      } catch (error) {
+        setError(getErrorMessage(error));
+      }
+    };
+
+    fetchData();
   }, [symbol]);
 
   if (error) {
